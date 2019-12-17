@@ -34,11 +34,14 @@ namespace DatingApp.API.Controllers {
             if (await _repo.UserExists (userForRegister.Username))
                 return BadRequest ("Username already exists");
 
-            var userToCreate = new User {
-                Username = userForRegister.Username
-            };
+            var userToCreate = _mapper.Map<User> (userForRegister);
+
             var createduser = await _repo.Register (userToCreate, userForRegister.Password);
-            return StatusCode (201);
+
+            var userToReturn =  _mapper.Map<UserForDetailedDto> (createduser);
+
+            return CreatedAtRoute ("GetUser", new { controller = "Users", id = createduser.Id }, userToReturn);
+  
         }
 
         [HttpPost ("login")]
@@ -65,11 +68,11 @@ namespace DatingApp.API.Controllers {
             var tokenHandler = new JwtSecurityTokenHandler ();
             var token = tokenHandler.CreateToken (tokenDescriptor);
 
-            var user = _mapper.Map<UserForListDto>(userFromRepo);
+            var user = _mapper.Map<UserForListDto> (userFromRepo);
 
             return Ok (new {
                 token = tokenHandler.WriteToken (token),
-                user
+                    user
             });
 
         }
